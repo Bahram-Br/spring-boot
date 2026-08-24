@@ -1,29 +1,38 @@
 package com.bahram.studentapi.controller;
 
 import com.bahram.studentapi.model.Student;
+import com.bahram.studentapi.repository.StudentRepository;
 import com.bahram.studentapi.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.bahram.studentapi.dto.StudentRequest;
 
 import java.util.List;
 
 @RestController
 public class Controller {
 
-    public Student student(@RequestBody Student student){
-        return student;
-    }
-
     private final StudentService studentService;
 
-    public Controller(StudentService studentService) {
+    private final StudentRepository studentRepository;
+
+    public Controller(StudentService studentService,
+                      StudentRepository studentRepository) {
         this.studentService = studentService;
+        this.studentRepository = studentRepository;
     }
 
     @PostMapping("/students")
-    public Student addstudent(@Valid @RequestBody Student student){
-        return studentService.addStudent(student);
+    public Student addstudent(@Valid @RequestBody StudentRequest request){
+
+         Student student = new Student(
+                 request.getAge(),
+                 request.getName(),
+                 request.getGender(),
+                 request.getMajor()
+         );
+         return studentService.addStudent(student);
     }
 
     @GetMapping("/students/{id}")
@@ -71,4 +80,5 @@ public class Controller {
     public List<Student> studentsByAge(@PathVariable int age){
         return studentService.studentByOlderThan(age);
     }
+
 }
