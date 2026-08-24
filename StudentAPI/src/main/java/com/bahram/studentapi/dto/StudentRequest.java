@@ -1,16 +1,9 @@
 package com.bahram.studentapi.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-
 public class StudentRequest {
 
-    @Min(1)
     private  Integer age;
-
-    @NotBlank
     private String name;
-
     private String gender;
     private String major;
 
