@@ -50,11 +50,11 @@ public class StudentControllerTest {
     @Test
     public void getStudentReturns404(){
 
-        when(studentService.getStudents()).thenThrow(new StudentNotFoundException(1));
+        when(studentService.getStudent(1)).thenThrow(new StudentNotFoundException(1));
 
         given()
                 .when()
-                .get("/api/v1/students")
+                .get("/api/v1/student/1")
                 .then()
                 .statusCode(404);
     }
