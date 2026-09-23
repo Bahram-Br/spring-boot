@@ -21,7 +21,10 @@ public class Student {
     private String name;
 
     private String gender;
+
+    @Column(unique = true)
     private String email;
+
     private String major;
 
     public Student(){
@@ -33,7 +36,6 @@ public class Student {
         this.age = age;
         this.name = name;
         this.gender = gender;
-        this.email = name.toLowerCase() + "@stu" + ".email.com";
         this.major = major;
 
     }
@@ -56,7 +58,6 @@ public class Student {
 
     public void setName(String name) {
         this.name = name;
-        this.email = name.toLowerCase() + "@stu.email.com";
     }
 
     public String getGender() {

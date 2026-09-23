@@ -7,7 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class StudentApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(StudentApiApplication.class, args);
-    }
 
+        SpringApplication.run(StudentApiApplication.class, args);
+
+        System.out.println("Student API Application has been started");
+    }
 }

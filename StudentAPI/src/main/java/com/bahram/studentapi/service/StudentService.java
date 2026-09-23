@@ -1,5 +1,6 @@
 package com.bahram.studentapi.service;
 
+import com.bahram.studentapi.dto.StudentRequest;
 import com.bahram.studentapi.exception.StudentNotFoundException;
 import com.bahram.studentapi.model.Student;
 import com.bahram.studentapi.repository.StudentRepository;
@@ -16,12 +17,10 @@ public class StudentService {
         this.studentRepository = studentRepository;
     }
 
-    // Searches all students
     public List<Student> getStudents(){
         return studentRepository.findAll();
     }
 
-    // Searches Student by ID
     public Student getStudent(int id){
         return studentRepository.findById(id)
                 .orElseThrow(
@@ -29,31 +28,37 @@ public class StudentService {
         );
     }
 
-    // Adds a new student
     public Student addStudent(Student student){
         return studentRepository.save(student);
     }
 
-    // Updates a student
-    public Student updateStudent(int id, Student student){
-        return studentRepository.save(student);
+    public Student updateStudent(int id, StudentRequest request){
+
+        Student existingStu = studentRepository.findById(id)
+                .orElseThrow( ()-> new StudentNotFoundException(id) );
+
+        existingStu.setAge(request.getAge());
+        existingStu.setName(request.getName());
+        existingStu.setGender(request.getGender());
+        existingStu.setMajor(request.getMajor());
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            existingStu.setEmail(request.getEmail());
+        }
+
+        return studentRepository.save(existingStu);
     }
 
-    // Deletes a student
     public Student deleteStudent(int id){
 
-        Student student = studentRepository.findById(id).orElse(null);
-
-        if (student == null){
-            return null;
-        }
+        Student student = studentRepository.findById(id).orElseThrow( () -> new StudentNotFoundException(id));
 
         studentRepository.deleteById(id);
 
         return student;
     }
 
-    public Student studentByName(String name){
+    public List<Student> studentByName(String name){
 
         return studentRepository.findByName(name);
     }
@@ -62,14 +67,11 @@ public class StudentService {
         return studentRepository.findByMajor(major);
     }
 
-    public Student studentByEmail(String email){
+    public List<Student> studentByEmail(String email){
         return studentRepository.findByEmail(email);
     }
 
-    public List<Student> studentByOlderThan(int age){
-        if (age < 15) {
-            return null;
-        }
+    public List<Student> studentsOlderThan(int age){
         return studentRepository.findByAgeGreaterThan(age);
 
     }
