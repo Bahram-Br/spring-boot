@@ -54,7 +54,7 @@ public class StudentControllerTest {
 
         given()
                 .when()
-                .get("/api/v1/student/1")
+                .get("/api/v1/students/1")
                 .then()
                 .statusCode(404);
     }
