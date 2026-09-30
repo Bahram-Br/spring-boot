@@ -39,7 +39,6 @@ class StudentApiHttpTest {
                 .then()
                 .statusCode(200);
 
-
     }
 }
 
