@@ -1,5 +1,6 @@
 package com.bahram.studentapi.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ public class StudentRequest {
     private String gender;
     @NotBlank
     private String major;
+    @Email
     private String email;
 
     public Integer getAge() {

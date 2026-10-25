@@ -1,6 +1,7 @@
 package com.bahram.studentapi.service;
 
 import com.bahram.studentapi.dto.StudentRequest;
+import com.bahram.studentapi.exception.DuplicateEmailException;
 import com.bahram.studentapi.exception.StudentNotFoundException;
 import com.bahram.studentapi.model.Student;
 import com.bahram.studentapi.repository.StudentRepository;
@@ -29,6 +30,9 @@ public class StudentService {
     }
 
     public Student addStudent(Student student){
+        if (student.getEmail() != null && studentRepository.existsByEmail(student.getEmail())) {
+            throw new DuplicateEmailException(student.getEmail());
+        }
         return studentRepository.save(student);
     }
 
@@ -43,6 +47,9 @@ public class StudentService {
         existingStu.setMajor(request.getMajor());
 
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            if (studentRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
+                throw new DuplicateEmailException(request.getEmail());
+            }
             existingStu.setEmail(request.getEmail());
         }
 

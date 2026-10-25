@@ -56,7 +56,9 @@ public class StudentControllerTest {
                 .when()
                 .get("/api/v1/students/1")
                 .then()
-                .statusCode(404);
+                .statusCode(404)
+                .contentType("application/problem+json")
+                .body("detail", org.hamcrest.Matchers.equalTo("Student not found with id: 1"));
     }
 
     @Test

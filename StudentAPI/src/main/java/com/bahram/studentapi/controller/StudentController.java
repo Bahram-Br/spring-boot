@@ -8,6 +8,9 @@ import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 import com.bahram.studentapi.dto.StudentRequest;
 
 import java.util.List;
@@ -26,7 +29,7 @@ public class StudentController {
     }
 
     @PostMapping("/students")
-    public Student addStudent(@Valid @RequestBody StudentRequest request){
+    public ResponseEntity<Student> addStudent(@Valid @RequestBody StudentRequest request){
 
         Student student = new Student(
                 request.getAge(),
@@ -39,7 +42,11 @@ public class StudentController {
             student.setEmail(request.getEmail());
         }
 
-         return studentService.addStudent(student);
+        Student saved = studentService.addStudent(student);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}").buildAndExpand(saved.getId()).toUri();
+
+        return ResponseEntity.created(location).body(saved);
     }
 
     @GetMapping("/students/{id}")
