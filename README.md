@@ -106,7 +106,34 @@ The controller accepts requests, the service contains business logic, and the re
 | GET | `/api/v1/students/email/{email}` | Search by email |
 | GET | `/api/v1/students/older-than/{age}` | Find students older than an age |
 
-A missing student ID returns HTTP 404. Request-body validation is handled through `StudentRequest`.
+### Status codes and errors
+
+| Situation | Status |
+|---|---|
+| Student created | `201 Created` with a `Location` header |
+| Invalid request body (blank name, malformed email) | `400 Bad Request` |
+| `older-than/{age}` with an age below 15 | `400 Bad Request` |
+| Student ID not found | `404 Not Found` |
+| Email already used by another student (POST or PUT) | `409 Conflict` |
+| Unexpected server error | `500` with a generic message only |
+
+Every error is returned as an RFC 7807 `ProblemDetail` (`application/problem+json`) from `GlobalExceptionHandler`. Validation errors include an `errors` map of field to message. Stack traces are never included in responses; they are only written to the server log.
+
+Example (duplicate email):
+
+```json
+{
+  "detail": "Email already exists: tom@school.edu",
+  "instance": "/api/v1/students",
+  "status": 409,
+  "title": "Duplicate Email"
+}
+```
+
+### Known behavior
+
+- Search by name and by major is an exact, case-sensitive match, so `math` does not match `Math`. This is intentional for now and is not treated as a bug.
+- Email is optional. When it is provided it must be a well-formed address and unique.
 
 ## Database
 
@@ -180,7 +207,7 @@ Query PostgreSQL to verify the stored data
 
 ## Automated tests
 
-The project currently has three different testing levels.
+The project has three testing levels: unit, web layer, and HTTP integration.
 
 ### StudentServiceTest
 
@@ -234,6 +261,52 @@ Important: this Testcontainers PostgreSQL database is separate from the local `s
 
 The temporary container is useful for isolated automated tests. The local PostgreSQL database remains useful for SQL and Postman practice.
 
+### StudentPostHttpTest
+
+A REST Assured HTTP test that creates a student and verifies the `201 Created` response.
+
+### StudentApiRegressionTest
+
+REST Assured regression tests against a Testcontainers PostgreSQL database, one or more per bug found during exploratory testing. Data is cleared before each test.
+
+- `postValidStudentReturns201WithLocation`
+- `postDuplicateEmailReturns409`
+- `putDuplicateEmailReturns409`
+- `putSameEmailOnSameStudentIsAllowed`
+- `olderThanBelowMinimumReturns400WithoutStackTrace`
+- `olderThanValidAgeReturns200`
+- `postInvalidEmailReturns400WithFieldError`
+- `postWithoutEmailStillAllowed`
+- `getMissingStudentReturns404ProblemDetail`
+- `deleteMissingStudentReturns404ProblemDetail`
+
+## Exploratory testing with an MCP server
+
+The `student-mcp/` folder at the repository root is a TypeScript MCP (Model Context Protocol) server that exposes this API as tools an AI agent can call: list, get, add, update, and delete students, plus search by name, major, email, and age. Non-2xx responses are returned to the agent with their HTTP status and body, so failures are visible instead of hidden. See [`student-mcp/README.md`](student-mcp/README.md) for setup.
+
+I designed the test ideas, ran them through the MCP tools in Cursor, and reviewed each result against the expected status. That session found six defects:
+
+| # | Defect | Before | After | Severity |
+|---|---|---|---|---|
+| 1 | Error responses leaked the Java stack trace | 500 with stack trace | Generic message, trace only in server log | High |
+| 2 | Duplicate email on POST and PUT | 500 | 409 | High |
+| 3 | `older-than/{age}` with age below 15 | 500 | 400 | High |
+| 4 | Malformed email accepted | 200, saved | 400 | Medium |
+| 5 | Successful POST status | 200 | 201 with `Location` | Low |
+| 6 | 404 body was plain text | Plain text | JSON `ProblemDetail` | Low |
+
+Each fix was verified manually in Postman and locked in with a regression test.
+
+### Proving the tests catch the bug
+
+To confirm the regression tests are meaningful, the 201 fix was temporarily reverted (`ResponseEntity.ok` instead of `ResponseEntity.created`). The suite went red with `Expected status code <201> but was <200>`:
+
+![Tests failing after reverting the 201 fix](docs/images/red-tests.png)
+
+After restoring the fix, all 17 tests pass:
+
+![All 17 tests passing](docs/images/green-tests.png)
+
 ## REST Assured learning plan
 
 The current REST Assured work starts simple.
@@ -286,7 +359,7 @@ mvn test
 
 `StudentServiceTest` and `StudentControllerTest` do not use the local PostgreSQL database.
 
-`StudentApiHttpTest` uses a temporary PostgreSQL Testcontainer, so Docker must be available for that integration test.
+`StudentApiHttpTest`, `StudentPostHttpTest`, and `StudentApiRegressionTest` use a temporary PostgreSQL Testcontainer, so Docker must be running for them.
 
 ## Current direction
 
