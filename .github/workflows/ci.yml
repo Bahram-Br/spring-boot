@@ -1,0 +1,70 @@
+name: CI
+
+# Run on every push to main and on every pull request that targets main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  api-tests:
+    # GitHub's Ubuntu runners have Docker preinstalled, which Testcontainers
+    # needs to start a throwaway postgres:16-alpine database for the HTTP tests.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: StudentAPI
+    steps:
+      # Download the repository code onto the runner.
+      - uses: actions/checkout@v4
+
+      # Install Java 17 (Temurin) and cache ~/.m2 so later runs download fewer dependencies.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # The Maven wrapper is committed without the executable bit, so allow it to run.
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      # Compile and run all unit, controller, and Testcontainers/REST Assured tests.
+      - name: Run tests
+        run: ./mvnw -B test
+
+      # Keep the JUnit reports even when tests fail, so failures can be inspected.
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: StudentAPI/target/surefire-reports
+
+  mcp-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: student-mcp
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install Node 20 and cache npm downloads, keyed on the lock file.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: student-mcp/package-lock.json
+
+      # Clean install of the exact versions in package-lock.json.
+      - name: Install dependencies
+        run: npm ci
+
+      # Compile TypeScript to dist/ (catches type errors).
+      - name: Build
+        run: npm run build
+
+      # Run the vitest unit tests for the API client.
+      - name: Test
+        run: npm test

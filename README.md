@@ -1,5 +1,7 @@
 # StudentAPI
 
+[![CI](https://github.com/Bahram-Br/spring-boot/actions/workflows/ci.yml/badge.svg)](https://github.com/Bahram-Br/spring-boot/actions/workflows/ci.yml)
+
 StudentAPI is a Spring Boot REST API for practicing backend development and QA testing with Java, PostgreSQL, SQL, Postman, REST Assured, MockMvc, and Testcontainers.
 
 The main local database is PostgreSQL `student_db`, using the `students` table. Every public API path starts with `/api/v1`.
@@ -360,6 +362,15 @@ mvn test
 `StudentServiceTest` and `StudentControllerTest` do not use the local PostgreSQL database.
 
 `StudentApiHttpTest`, `StudentPostHttpTest`, and `StudentApiRegressionTest` use a temporary PostgreSQL Testcontainer, so Docker must be running for them.
+
+### Continuous integration
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `main`:
+
+- `api-tests`: sets up Java 17 and runs `./mvnw -B test` in `StudentAPI`. The GitHub Ubuntu runner has Docker, so the Testcontainers PostgreSQL tests run there too. The Surefire reports are uploaded as a `surefire-reports` artifact, even when tests fail.
+- `mcp-server`: sets up Node 20, then runs `npm ci`, `npm run build`, and `npm test` in `student-mcp`.
+
+The badge at the top of this README shows the result of the latest run on `main`.
 
 ## Current direction
 
