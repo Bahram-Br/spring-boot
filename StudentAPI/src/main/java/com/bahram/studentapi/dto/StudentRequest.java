@@ -7,15 +7,15 @@ import jakarta.validation.constraints.NotNull;
 
 public class StudentRequest {
 
-    @NotNull @Min(1)
+    @NotNull @Min(1) @Size(max = 255)
     private  Integer age;
-    @NotBlank
+    @NotBlank @Size(max = 255)
     private String name;
-    @NotBlank
+    @NotBlank @Size(max = 255)
     private String gender;
-    @NotBlank
+    @NotBlank @Size(max = 255)
     private String major;
-    @Email
+    @Email @Size(max = 255)
     private String email;
 
     public Integer getAge() {
