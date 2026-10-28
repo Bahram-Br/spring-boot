@@ -296,7 +296,7 @@ I designed the test ideas, ran them through the MCP tools in Cursor, and reviewe
 | 4 | Malformed email accepted | 200, saved | 400 | Medium |
 | 5 | Successful POST status | 200 | 201 with `Location` | Low |
 | 6 | 404 body was plain text | Plain text | JSON `ProblemDetail` | Low |
-| 7 | Size of email and name cannot retrieve if it is too long | 500, saved | Low |
+| 7 | Long names return misleading error 409 | 409, "Email already exists" | 400 with failed error| Medium |
 
 Each fix was verified manually in Postman and locked in with a regression test.
 
