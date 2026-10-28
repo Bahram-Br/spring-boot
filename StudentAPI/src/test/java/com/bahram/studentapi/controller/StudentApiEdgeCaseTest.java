@@ -91,6 +91,12 @@ class StudentApiEdgeCaseTest {
         create("a".repeat(255), null);
     }
 
+    @Test
+    void nameOverDbLimitReturns400() {
+        // 256 chars: must be rejected by @Size(max = 255) as 400, not reach the DB and become a misleading 409
+        expect400(body("\"" + "a".repeat(256) + "\"", "20", null), "name");
+    }
+
     // ---- malformed requests ----
     @Test
     void malformedJsonReturns400ProblemDetail() {
