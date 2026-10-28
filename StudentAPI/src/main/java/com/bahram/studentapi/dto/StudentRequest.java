@@ -1,6 +1,6 @@
 package com.bahram.studentapi.dto;
 
-import jakarta.validation.constraint.*
+import jakarta.validation.constraints.*;
 
 public class StudentRequest {
 
