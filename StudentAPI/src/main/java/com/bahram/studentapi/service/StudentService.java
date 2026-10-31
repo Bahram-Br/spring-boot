@@ -82,7 +82,7 @@ public class StudentService {
     }
 
     public List<Student> studentByEmail(String email){
-        return studentRepository.findByEmail(email);
+        return studentRepository.findByEmail(normalizeEmail(email));
     }
 
     public List<Student> studentsOlderThan(int age){

@@ -184,4 +184,14 @@ class StudentApiRegressionTest {
         given().when().get("/students/" + caseyId)
                 .then().statusCode(200).body("email", equalTo("casey@school.edu"));
     }
+
+    @Test
+    void searchByEmailIsCaseInsensitive() {
+        int id = create("Tom", "tom@school.edu");
+        given().when().get("/students/email/TOM@School.edu")
+                .then().statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].id", equalTo(id))
+                .body("[0].email", equalTo("tom@school.edu"));
+    }
 }
