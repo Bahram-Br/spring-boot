@@ -135,7 +135,7 @@ Example (duplicate email):
 ### Known behavior
 
 - Search by name and by major is an exact, case-sensitive match, so `math` does not match `Math`. This is intentional for now and is not treated as a bug.
-- Email is optional. When it is provided it must be a well-formed address and unique.
+- Email is optional. When it is provided it must be a well-formed address and unique. Uniqueness is case-insensitive: emails are trimmed and stored in lowercase, and search by email ignores case.
 
 ## Database
 
@@ -154,6 +154,7 @@ Flyway owns the schema:
 
 - `V1__create_students.sql` creates the `students` table.
 - `V2__unique_student_email.sql` adds the unique email constraint.
+- `V3__unique_student_email_lower.sql` adds a unique index on `lower(email)`, so emails that differ only in case are rejected by the database too.
 - Hibernate uses `ddl-auto=validate`, so it validates the schema instead of changing it.
 
 The database generates the student ID automatically.
@@ -281,12 +282,16 @@ REST Assured regression tests against a Testcontainers PostgreSQL database, one 
 - `postWithoutEmailStillAllowed`
 - `getMissingStudentReturns404ProblemDetail`
 - `deleteMissingStudentReturns404ProblemDetail`
+- `postDuplicateEmailDifferentCaseReturns409`
+- `postEmailIsStoredLowercase`
+- `putDuplicateEmailDifferentCaseReturns409`
+- `searchByEmailIsCaseInsensitive`
 
 ## Exploratory testing with an MCP server
 
 The `student-mcp/` folder at the repository root is a TypeScript MCP (Model Context Protocol) server that exposes this API as tools an AI agent can call: list, get, add, update, and delete students, plus search by name, major, email, and age. Non-2xx responses are returned to the agent with their HTTP status and body, so failures are visible instead of hidden. See [`student-mcp/README.md`](student-mcp/README.md) for setup.
 
-I designed the test ideas, ran them through the MCP tools in Cursor, and reviewed each result against the expected status. That session found six defects:
+I designed the test ideas, ran them through the MCP tools in Cursor, and reviewed each result against the expected status. That session, plus the later edge-case tests, found eight defects:
 
 | # | Defect | Before | After | Severity |
 |---|---|---|---|---|
@@ -297,6 +302,7 @@ I designed the test ideas, ran them through the MCP tools in Cursor, and reviewe
 | 5 | Successful POST status | 200 | 201 with `Location` | Low |
 | 6 | 404 body was plain text | Plain text | JSON `ProblemDetail` | Low |
 | 7 | Long names return misleading error 409 | 409, "Email already exists" | 400 with field error| Medium |
+| 8 | Duplicate email check was case-sensitive (`TOM@school.edu` accepted next to `tom@school.edu`) | 201, saved | 409 | Medium |
 
 Each fix was verified manually in Postman and locked in with a regression test.
 
@@ -309,6 +315,24 @@ To confirm the regression tests are meaningful, the 201 fix was temporarily reve
 After restoring the fix, all 17 tests pass:
 
 ![All 17 tests passing](docs/images/green-tests.png)
+
+## Optional AI module
+
+The `ai/` package uses Spring AI to put a chat layer on top of the API:
+
+- `GET /api/v1/ai/chat?message=...` sends a prompt to the model.
+- `GET /api/v1/ai/agent?message=...` lets the model call `StudentTools` (list students, find by major, add, and delete) through Spring AI `@Tool` methods.
+
+The module is **off by default**. `AiController` and `StudentTools` are only created when `app.ai.enabled=true` (`@ConditionalOnProperty`), so the API, the tests, and CI run without any AI key.
+
+To turn it on locally, add these environment variables to the run configuration:
+
+```powershell
+$env:AI_ENABLED = "true"
+$env:OPENAI_API_KEY = "your-api-key"
+```
+
+The test configuration sets a dummy `spring.ai.openai.api-key=test`, because the Spring AI OpenAI starter still needs a key to start even when the AI endpoints are disabled. No real model is called during tests.
 
 ## REST Assured learning plan
 
