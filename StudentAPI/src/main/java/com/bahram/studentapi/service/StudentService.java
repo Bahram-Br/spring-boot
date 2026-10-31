@@ -8,6 +8,7 @@ import com.bahram.studentapi.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class StudentService {
@@ -29,7 +30,12 @@ public class StudentService {
         );
     }
 
+    private static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
     public Student addStudent(Student student){
+        student.setEmail(normalizeEmail(student.getEmail()));
         if (student.getEmail() != null && studentRepository.existsByEmail(student.getEmail())) {
             throw new DuplicateEmailException(student.getEmail());
         }
@@ -46,11 +52,12 @@ public class StudentService {
         existingStu.setGender(request.getGender());
         existingStu.setMajor(request.getMajor());
 
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            if (studentRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
-                throw new DuplicateEmailException(request.getEmail());
+        String email = normalizeEmail(request.getEmail());
+        if (email != null && !email.isBlank()) {
+            if (studentRepository.existsByEmailAndIdNot(email, id)) {
+                throw new DuplicateEmailException(email);
             }
-            existingStu.setEmail(request.getEmail());
+            existingStu.setEmail(email);
         }
 
         return studentRepository.save(existingStu);
