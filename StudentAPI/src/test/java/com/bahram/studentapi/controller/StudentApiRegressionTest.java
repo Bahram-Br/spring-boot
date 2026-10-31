@@ -148,4 +148,40 @@ class StudentApiRegressionTest {
                 .body("status", equalTo(404))
                 .body("detail", equalTo("Student not found with id: 99999"));
     }
+
+    // Bug 8: duplicate email check was case-sensitive
+    @Test
+    void postDuplicateEmailDifferentCaseReturns409() {
+        create("Tom", "tom@school.edu");
+        given().contentType(ContentType.JSON).body(body("Tom2", "TOM@school.edu"))
+                .when().post("/students")
+                .then().statusCode(409)
+                .contentType("application/problem+json")
+                .body("status", equalTo(409))
+                .body("detail", containsString("Email already exists"));
+    }
+
+    @Test
+    void postEmailIsStoredLowercase() {
+        int id = given().contentType(ContentType.JSON).body(body("Amy", "Amy@School.EDU"))
+                .when().post("/students")
+                .then().statusCode(201)
+                .body("email", equalTo("amy@school.edu"))
+                .extract().path("id");
+        given().when().get("/students/" + id)
+                .then().statusCode(200).body("email", equalTo("amy@school.edu"));
+    }
+
+    @Test
+    void putDuplicateEmailDifferentCaseReturns409() {
+        create("Tom", "tom@school.edu");
+        int caseyId = create("Casey", "casey@school.edu");
+        given().contentType(ContentType.JSON).body(body("Casey", "Tom@School.edu"))
+                .when().put("/students/" + caseyId)
+                .then().statusCode(409)
+                .contentType("application/problem+json")
+                .body("detail", containsString("Email already exists"));
+        given().when().get("/students/" + caseyId)
+                .then().statusCode(200).body("email", equalTo("casey@school.edu"));
+    }
 }
