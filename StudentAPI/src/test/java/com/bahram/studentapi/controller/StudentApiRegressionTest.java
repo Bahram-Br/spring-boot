@@ -40,7 +40,10 @@ class StudentApiRegressionTest {
     }
 
     private static String body(String name, String email) {
-        String e = email == null ? "" : ",\"email\":\"" + email + "\"";
+        String e = "";
+        if (email != null) {
+            e = ",\"email\":\"" + email + "\"";
+        }
         return "{\"name\":\"" + name + "\",\"age\":20,\"gender\":\"F\",\"major\":\"Math\"" + e + "}";
     }
 

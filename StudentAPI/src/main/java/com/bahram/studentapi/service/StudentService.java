@@ -31,7 +31,10 @@ public class StudentService {
     }
 
     private static String normalizeEmail(String email) {
-        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+        if (email == null) {
+            return null;
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     public Student addStudent(Student student){

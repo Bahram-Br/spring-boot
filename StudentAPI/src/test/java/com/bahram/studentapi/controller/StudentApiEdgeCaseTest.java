@@ -41,7 +41,10 @@ class StudentApiEdgeCaseTest {
 
     /** Valid body; age is raw JSON so tests can send 0, -1, "abc", null, ... */
     private static String body(String name, String age, String email) {
-        String e = email == null ? "" : ",\"email\":\"" + email + "\"";
+        String e = "";
+        if (email != null) {
+            e = ",\"email\":\"" + email + "\"";
+        }
         return "{\"name\":" + name + ",\"age\":" + age + ",\"gender\":\"F\",\"major\":\"Math\"" + e + "}";
     }
 
