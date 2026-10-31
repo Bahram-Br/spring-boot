@@ -1,12 +1,13 @@
 package com.bahram.studentapi.ai;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
+@ConditionalOnProperty(name = "app.ai.enabled", havingValue = "true")
 @RestController 
 @RequestMapping ("/api/v1/ai")
 public class AiController {
