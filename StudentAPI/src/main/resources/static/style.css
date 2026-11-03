@@ -1,0 +1,5 @@
+body { font-family: sans-serif; margin: 2rem; }
+form label { display: block; margin-bottom: 0.5rem; }
+table { border-collapse: collapse; margin-top: 1rem; }
+th, td { border: 1px solid #ccc; padding: 0.3rem 0.6rem; }
+.error { color: #b00020; margin-top: 1rem; }

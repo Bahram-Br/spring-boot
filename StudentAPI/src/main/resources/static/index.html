@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudentAPI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Students</h1>
+
+<form id="student-form" data-testid="student-form">
+    <label>Name <input id="name" data-testid="name-input" type="text"></label>
+    <label>Age <input id="age" data-testid="age-input" type="number"></label>
+    <label>Gender <input id="gender" data-testid="gender-input" type="text"></label>
+    <label>Major <input id="major" data-testid="major-input" type="text"></label>
+    <label>Email <input id="email" data-testid="email-input" type="text"></label>
+    <button id="submit" data-testid="submit-button" type="submit">Add student</button>
+</form>
+
+<div id="error" data-testid="error-message" class="error" hidden></div>
+
+<table id="student-table" data-testid="student-table">
+    <thead>
+    <tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Major</th><th>Email</th></tr>
+    </thead>
+    <tbody id="student-rows" data-testid="student-rows"></tbody>
+</table>
+
+<script src="app.js"></script>
+</body>
+</html>
