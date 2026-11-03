@@ -210,7 +210,7 @@ Query PostgreSQL to verify the stored data
 
 ## Automated tests
 
-The project has three testing levels: unit, web layer, and HTTP integration.
+The project has four testing levels: unit, web layer, HTTP integration, and UI (Selenium).
 
 ### StudentServiceTest
 
@@ -286,6 +286,19 @@ REST Assured regression tests against a Testcontainers PostgreSQL database, one 
 - `postEmailIsStoredLowercase`
 - `putDuplicateEmailDifferentCaseReturns409`
 - `searchByEmailIsCaseInsensitive`
+
+## UI tests with Selenium
+
+`src/main/resources/static/index.html` (with `app.js` and `style.css`) is a small plain HTML page served at `http://localhost:8080/index.html`. It has a form to add a student, a table that lists students with `fetch GET /api/v1/students` (refreshed after each add), and an error area that shows the API's ProblemDetail error, for example `400: Request body is invalid. (name must not be blank)` or `409: Email already exists: tom@school.edu`. Every element the tests use has a stable `data-testid`.
+
+- **Page Object pattern:** `ui/pages/StudentPage.java` holds all locators and actions (`open`, `addStudent`, `rows`, `errorMessage`). Tests only call these methods, so a page change is fixed in one place. It uses `WebDriverWait` explicit waits, never `Thread.sleep`.
+- **`StudentUiTest`:** `@SpringBootTest(RANDOM_PORT)` with the same PostgreSQL Testcontainer as the HTTP tests, headless Chrome (`--headless=new`), and `deleteAll()` before each test. Checks:
+  - the page loads with an empty table;
+  - **UI to API:** a student added through the form appears in the table, and a REST Assured `GET` confirms it was saved;
+  - **API to UI:** a student created with REST Assured `POST` is shown in the table;
+  - a duplicate email in different case shows the 409 error;
+  - invalid input (blank name, bad email) shows the 400 validation error.
+- **Running:** they run with the other tests (`./mvnw test`). Chrome and Docker must be installed; Selenium Manager downloads the matching ChromeDriver automatically. Run only the UI tests with `./mvnw test -Dtest=StudentUiTest`.
 
 ## Exploratory testing with an MCP server
 
@@ -386,13 +399,13 @@ mvn test
 
 `StudentServiceTest` and `StudentControllerTest` do not use the local PostgreSQL database.
 
-`StudentApiHttpTest`, `StudentPostHttpTest`, and `StudentApiRegressionTest` use a temporary PostgreSQL Testcontainer, so Docker must be running for them.
+`StudentApiHttpTest`, `StudentPostHttpTest`, `StudentApiRegressionTest`, `StudentApiEdgeCaseTest`, and `StudentUiTest` use a temporary PostgreSQL Testcontainer, so Docker must be running for them. `StudentUiTest` also needs Google Chrome (it runs headless).
 
 ### Continuous integration
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `main`:
 
-- `api-tests`: sets up Java 17 and runs `./mvnw -B test` in `StudentAPI`. The GitHub Ubuntu runner has Docker, so the Testcontainers PostgreSQL tests run there too. The Surefire reports are uploaded as a `surefire-reports` artifact, even when tests fail.
+- `api-tests`: sets up Java 17 and runs `./mvnw -B test` in `StudentAPI`. The GitHub Ubuntu runner has Docker, so the Testcontainers PostgreSQL tests run there too, and Chrome is preinstalled for the Selenium UI tests. The Surefire reports are uploaded as a `surefire-reports` artifact, even when tests fail.
 - `mcp-server`: sets up Node 20, then runs `npm ci`, `npm run build`, and `npm test` in `student-mcp`.
 
 The badge at the top of this README shows the result of the latest run on `main`.
