@@ -58,23 +58,37 @@ StudentAPI
 │   ├── repository/StudentRepository.java
 │   ├── model/Student.java
 │   ├── dto/StudentRequest.java
+│   ├── ai/                         (optional, off by default)
+│   │   ├── AiController.java
+│   │   └── StudentTools.java
 │   └── exception/
 │       ├── StudentNotFoundException.java
+│       ├── DuplicateEmailException.java
 │       └── GlobalExceptionHandler.java
 ├── src/main/resources
 │   ├── application.properties
 │   ├── application-dev.properties
+│   ├── static/                     (Selenium test page)
+│   │   ├── index.html
+│   │   ├── app.js
+│   │   └── style.css
 │   └── db/migration/
 │       ├── V1__create_students.sql
-│       └── V2__unique_student_email.sql
+│       ├── V2__unique_student_email.sql
+│       └── V3__unique_student_email_lower.sql
 └── src/test
     ├── java/com/bahram/studentapi
     │   ├── service/StudentServiceTest.java
-    │   └── controller/
-    │       ├── StudentControllerTest.java
-    │       └── StudentApiHttpTest.java
-    └── resources/application.properties
-```
+    │   ├── controller/
+    │   │   ├── StudentControllerTest.java
+    │   │   ├── StudentApiHttpTest.java
+    │   │   ├── StudentPostHttpTest.java
+    │   │   ├── StudentApiRegressionTest.java
+    │   │   └── StudentApiEdgeCaseTest.java
+    │   └── ui/
+    │       ├── StudentUiTest.java
+    │       └── pages/StudentPage.java
+    └── resources/application.properties```
 
 ## Request flow
 
@@ -297,7 +311,8 @@ REST Assured regression tests against a Testcontainers PostgreSQL database, one 
   - **UI to API:** a student added through the form appears in the table, and a REST Assured `GET` confirms it was saved;
   - **API to UI:** a student created with REST Assured `POST` is shown in the table;
   - a duplicate email in different case shows the 409 error;
-  - invalid input (blank name, bad email) shows the 400 validation error.
+  - a blank name shows the 400 error;
+  - an invalid email shows the 400 error;
 - **Running:** they run with the other tests (`./mvnw test`). Chrome and Docker must be installed; Selenium Manager downloads the matching ChromeDriver automatically. Run only the UI tests with `./mvnw test -Dtest=StudentUiTest`.
 
 ## Exploratory testing with an MCP server
@@ -325,9 +340,9 @@ To confirm the regression tests are meaningful, the 201 fix was temporarily reve
 
 ![Tests failing after reverting the 201 fix](docs/images/red-tests.png)
 
-After restoring the fix, all 17 tests pass:
+After restoring the fix, the tests pass again:
 
-![All 17 tests passing](docs/images/green-tests.png)
+![All tests passing](docs/images/green-tests.png)
 
 ## Optional AI module
 
@@ -380,7 +395,7 @@ $env:DB_PASSWORD = "your-database-password"
 $env:SPRING_PROFILES_ACTIVE = "dev"
 
 cd D:\github-repos\spring-boot\StudentAPI
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 After `Started StudentApiApplication`, the API is available at:
@@ -394,7 +409,7 @@ With the `dev` profile active, Hibernate SQL is printed in the application logs.
 ## Running tests
 
 ```powershell
-mvn test
+.\mvnw.cmd test
 ```
 
 `StudentServiceTest` and `StudentControllerTest` do not use the local PostgreSQL database.
