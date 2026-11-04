@@ -32,7 +32,7 @@ class StudentApiEdgeCaseTest {
     StudentRepository studentRepository;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
         RestAssured.basePath = "/api/v1";
@@ -65,44 +65,44 @@ class StudentApiEdgeCaseTest {
 
     // ---- age boundaries (@NotNull @Min(1)) ----
     @Test
-    void ageOneIsAccepted() {
+    public void ageOneIsAccepted() {
         given().contentType(ContentType.JSON).body(body("\"Min\"", "1", null))
                 .when().post("/students").then().statusCode(201).body("age", equalTo(1));
     }
 
     @Test
-    void ageZeroReturns400() { expect400(body("\"Zero\"", "0", null), "age"); }
+    public void ageZeroReturns400() { expect400(body("\"Zero\"", "0", null), "age"); }
 
     @Test
-    void negativeAgeReturns400() { expect400(body("\"Neg\"", "-1", null), "age"); }
+    public void negativeAgeReturns400() { expect400(body("\"Neg\"", "-1", null), "age"); }
 
     @Test
-    void missingAgeReturns400() { expect400(body("\"NoAge\"", "null", null), "age"); }
+    public void missingAgeReturns400() { expect400(body("\"NoAge\"", "null", null), "age"); }
 
     // ---- name (@NotBlank) ----
     @Test
-    void blankNameReturns400() { expect400(body("\"\"", "20", null), "name"); }
+    public void blankNameReturns400() { expect400(body("\"\"", "20", null), "name"); }
 
     @Test
-    void whitespaceOnlyNameReturns400() { expect400(body("\"   \"", "20", null), "name"); }
+    public void whitespaceOnlyNameReturns400() { expect400(body("\"   \"", "20", null), "name"); }
 
     @Test
-    void nullNameReturns400() { expect400(body("null", "20", null), "name"); }
+    public void nullNameReturns400() { expect400(body("null", "20", null), "name"); }
 
     @Test
-    void nameAtDbLimit255IsAccepted() {
+    public void nameAtDbLimit255IsAccepted() {
         create("a".repeat(255), null);
     }
 
     @Test
-    void nameOverDbLimitReturns400() {
+    public void nameOverDbLimitReturns400() {
         // 256 chars: must be rejected by @Size(max = 255) as 400, not reach the DB and become a misleading 409
         expect400(body("\"" + "a".repeat(256) + "\"", "20", null), "name");
     }
 
     // ---- malformed requests ----
     @Test
-    void malformedJsonReturns400ProblemDetail() {
+    public void malformedJsonReturns400ProblemDetail() {
         given().contentType(ContentType.JSON).body("{\"name\": \"Bad\", ")
                 .when().post("/students")
                 .then().statusCode(400).contentType("application/problem+json")
@@ -110,14 +110,14 @@ class StudentApiEdgeCaseTest {
     }
 
     @Test
-    void ageAsStringReturns400() {
+    public void ageAsStringReturns400() {
         given().contentType(ContentType.JSON).body(body("\"Str\"", "\"abc\"", null))
                 .when().post("/students")
                 .then().statusCode(400).contentType("application/problem+json");
     }
 
     @Test
-    void nonNumericIdReturns400() {
+    public void nonNumericIdReturns400() {
         given().when().get("/students/abc")
                 .then().statusCode(400).contentType("application/problem+json")
                 .body("status", equalTo(400));
@@ -125,7 +125,7 @@ class StudentApiEdgeCaseTest {
 
     // ---- not found ----
     @Test
-    void putOnMissingStudentReturns404() {
+    public void putOnMissingStudentReturns404() {
         given().contentType(ContentType.JSON).body(body("\"Ghost\"", "20", null))
                 .when().put("/students/99999")
                 .then().statusCode(404).contentType("application/problem+json")
@@ -133,7 +133,7 @@ class StudentApiEdgeCaseTest {
     }
 
     @Test
-    void getAfterDeleteReturns404() {
+    public void getAfterDeleteReturns404() {
         int id = create("Temp", "temp@school.edu");
         given().when().delete("/students/" + id).then().statusCode(200).body("id", equalTo(id));
         given().when().get("/students/" + id).then().statusCode(404);
@@ -141,7 +141,7 @@ class StudentApiEdgeCaseTest {
 
     // ---- search ----
     @Test
-    void searchesWithNoMatchReturnEmptyList() {
+    public void searchesWithNoMatchReturnEmptyList() {
         create("Ada", "ada@school.edu");
         given().get("/students/name/Nobody").then().statusCode(200).body("$", empty());
         given().get("/students/major/Art").then().statusCode(200).body("$", empty());
@@ -149,7 +149,7 @@ class StudentApiEdgeCaseTest {
     }
 
     @Test
-    void olderThanIsStrictlyGreater() {
+    public void olderThanIsStrictlyGreater() {
         // age 20 is not "older than 20", but is older than 19
         create("Ada", null);
         given().get("/students/older-than/20").then().statusCode(200).body("$", empty());

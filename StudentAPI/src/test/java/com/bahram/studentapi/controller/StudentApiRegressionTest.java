@@ -32,7 +32,7 @@ class StudentApiRegressionTest {
     StudentRepository studentRepository;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
         RestAssured.basePath = "/api/v1";
@@ -55,7 +55,7 @@ class StudentApiRegressionTest {
 
     // Bug 5: POST returned 200
     @Test
-    void postValidStudentReturns201WithLocation() {
+    public void postValidStudentReturns201WithLocation() {
         int id = given().contentType(ContentType.JSON).body(body("Ada", "ada@school.edu"))
                 .when().post("/students")
                 .then().statusCode(201)
@@ -67,7 +67,7 @@ class StudentApiRegressionTest {
 
     // Bug 2: duplicate email on POST returned 500
     @Test
-    void postDuplicateEmailReturns409() {
+    public void postDuplicateEmailReturns409() {
         create("Tom", "tom@school.edu");
         given().contentType(ContentType.JSON).body(body("Tom2", "tom@school.edu"))
                 .when().post("/students")
@@ -79,7 +79,7 @@ class StudentApiRegressionTest {
 
     // Bug 2: duplicate email on PUT returned 500
     @Test
-    void putDuplicateEmailReturns409() {
+    public void putDuplicateEmailReturns409() {
         create("Tom", "tom@school.edu");
         int caseyId = create("Casey", "casey@school.edu");
         given().contentType(ContentType.JSON).body(body("Casey", "tom@school.edu"))
@@ -92,7 +92,7 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void putSameEmailOnSameStudentIsAllowed() {
+    public void putSameEmailOnSameStudentIsAllowed() {
         int id = create("Casey", "casey@school.edu");
         given().contentType(ContentType.JSON).body(body("Casey Updated", "casey@school.edu"))
                 .when().put("/students/" + id)
@@ -101,7 +101,7 @@ class StudentApiRegressionTest {
 
     // Bug 3 + Bug 1: older-than/14 returned 500 with a stack trace
     @Test
-    void olderThanBelowMinimumReturns400WithoutStackTrace() {
+    public void olderThanBelowMinimumReturns400WithoutStackTrace() {
         String response = given().when().get("/students/older-than/14")
                 .then().statusCode(400)
                 .contentType("application/problem+json")
@@ -113,13 +113,13 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void olderThanValidAgeReturns200() {
+    public void olderThanValidAgeReturns200() {
         given().when().get("/students/older-than/15").then().statusCode(200);
     }
 
     // Bug 4: invalid email was accepted
     @Test
-    void postInvalidEmailReturns400WithFieldError() {
+    public void postInvalidEmailReturns400WithFieldError() {
         given().contentType(ContentType.JSON).body(body("Quinn", "not-an-email"))
                 .when().post("/students")
                 .then().statusCode(400)
@@ -129,13 +129,13 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void postWithoutEmailStillAllowed() {
+    public void postWithoutEmailStillAllowed() {
         create("NoEmail", null);
     }
 
     // Bug 6: 404 returned plain text
     @Test
-    void getMissingStudentReturns404ProblemDetail() {
+    public void getMissingStudentReturns404ProblemDetail() {
         given().when().get("/students/99999")
                 .then().statusCode(404)
                 .contentType("application/problem+json")
@@ -144,7 +144,7 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void deleteMissingStudentReturns404ProblemDetail() {
+    public void deleteMissingStudentReturns404ProblemDetail() {
         given().when().delete("/students/99999")
                 .then().statusCode(404)
                 .contentType("application/problem+json")
@@ -154,7 +154,7 @@ class StudentApiRegressionTest {
 
     // Bug 8: duplicate email check was case-sensitive
     @Test
-    void postDuplicateEmailDifferentCaseReturns409() {
+    public void postDuplicateEmailDifferentCaseReturns409() {
         create("Tom", "tom@school.edu");
         given().contentType(ContentType.JSON).body(body("Tom2", "TOM@school.edu"))
                 .when().post("/students")
@@ -165,7 +165,7 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void postEmailIsStoredLowercase() {
+    public void postEmailIsStoredLowercase() {
         int id = given().contentType(ContentType.JSON).body(body("Amy", "Amy@School.EDU"))
                 .when().post("/students")
                 .then().statusCode(201)
@@ -176,7 +176,7 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void putDuplicateEmailDifferentCaseReturns409() {
+    public void putDuplicateEmailDifferentCaseReturns409() {
         create("Tom", "tom@school.edu");
         int caseyId = create("Casey", "casey@school.edu");
         given().contentType(ContentType.JSON).body(body("Casey", "Tom@School.edu"))
@@ -189,7 +189,7 @@ class StudentApiRegressionTest {
     }
 
     @Test
-    void searchByEmailIsCaseInsensitive() {
+    public void searchByEmailIsCaseInsensitive() {
         int id = create("Tom", "tom@school.edu");
         given().when().get("/students/email/TOM@School.edu")
                 .then().statusCode(200)
