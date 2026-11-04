@@ -24,7 +24,7 @@ class StudentApiHttpTest {
     int port;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
         RestAssured.basePath = "/api/v1";
