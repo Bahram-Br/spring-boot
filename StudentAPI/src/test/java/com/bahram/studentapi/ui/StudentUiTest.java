@@ -41,7 +41,7 @@ class StudentUiTest {
     StudentPage page;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         studentRepository.deleteAll();
 
         RestAssured.baseURI = "http://localhost";
@@ -55,14 +55,14 @@ class StudentUiTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         if (driver != null) {
             driver.quit();
         }
     }
 
     @Test
-    void pageLoadsWithEmptyTable() {
+    public void pageLoadsWithEmptyTable() {
         // Act
         page.open();
 
@@ -71,7 +71,7 @@ class StudentUiTest {
     }
 
     @Test
-    void studentAddedInUiIsSavedInApi() {
+    public void studentAddedInUiIsSavedInApi() {
         // Arrange
         page.open();
 
@@ -91,7 +91,7 @@ class StudentUiTest {
     }
 
     @Test
-    void studentCreatedInApiIsShownInUi() {
+    public void studentCreatedInApiIsShownInUi() {
         // Arrange: API -> UI
         createStudentViaApi("Ben", "ben@school.edu");
 
@@ -104,7 +104,7 @@ class StudentUiTest {
     }
 
     @Test
-    void duplicateEmailWithDifferentCaseShows409Error() {
+    public void duplicateEmailWithDifferentCaseShows409Error() {
         // Arrange
         createStudentViaApi("Tom", "tom@school.edu");
         page.open();
@@ -118,15 +118,28 @@ class StudentUiTest {
     }
 
     @Test
-    void invalidInputShowsValidationError() {
+    public void blankNameShowsValidationError(){
         // Arrange
         page.open();
 
-        // Act: blank name and an invalid email
-        page.addStudent("", "20", "Female", "Math", "not-an-email");
+        // Act: blank name, valid email
+        page.addStudent("","20","Female","Accounting","amy@school.edu");
 
         // Assert
-        assertThat(page.errorMessage()).startsWith("400").contains("name", "email");
+        assertThat(page.errorMessage()).startsWith("400").contains("name");
+        assertThat(page.rows()).isEmpty();
+    }
+
+    @Test
+    public void invalidEmailShowsValidationError(){
+        // Arrange
+        page.open();
+
+        // Act: blank name, valid email
+        page.addStudent("Amy Wolf","20","Female","Accounting","not-an-email");
+
+        // Assert
+        assertThat(page.errorMessage()).startsWith("400").contains("email");
         assertThat(page.rows()).isEmpty();
     }
 
